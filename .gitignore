@@ -32,4 +32,10 @@
 *.app
 
 # MAC OS FILE
-*/*/.DS_Store
+*/*/*/.DS_Store
+
+# build dir
+*/*/build
+*/*/build/*
+
+
