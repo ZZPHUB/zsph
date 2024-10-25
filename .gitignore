@@ -38,4 +38,7 @@
 */*/build
 */*/build/*
 
+# vscode config
+.vscode
+.vscode/*
 
