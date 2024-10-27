@@ -1,4 +1,4 @@
-#include "header/io.cuh"
+#include "io.cuh"
 using json = nlohmann::json;
 
 

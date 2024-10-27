@@ -4,10 +4,10 @@
 #include "data_structure.cuh"
 #include "std_header.cuh"
 //hash.cu
-extern __global__ void cuda_ptc_hash(gpu_ptc_t ptc_data, gpu_tmp_t tmp_data, gpu_param_t par);
+extern __global__ void cuda_ptc_hash(gpu_ptc_t *ptc_data, gpu_tmp_t *tmp_data, gpu_param_t *par);
 
 //sort.cu
-extern __global__ void cuda_sort_data(gpu_ptc_t data_old,gpu_ptc_t data_new,gpu_tmp_t tmp_data,gpu_param_t par);
+extern __global__ void cuda_sort_data(gpu_ptc_t *data_old,gpu_ptc_t *data_new,gpu_tmp_t *tmp_data,gpu_param_t *par);
 extern  void cuda_sort_index(gpu_tmp_t data,cpu_param_t par);
 
 //init.cu   
@@ -21,15 +21,17 @@ extern void delete_gpu_ptc_data(gpu_ptc_t *gptc_data);
 extern void alloc_gpu_tmp_data(gpu_tmp_t *gtmp_data,cpu_param_t *param);
 extern void delete_gpu_tmp_data(gpu_tmp_t *gtmp_data);
 
-extern void cpu_to_gpu(gpu_ptc_t *gdata,cpu_data_t *cdata,cpu_param_t *param);
+extern void cpu_to_gpu(gpu_ptc_t *gptc_data,gpu_tmp_t *gtmp_data,cpu_data_t *cdata,cpu_param_t *param);
 
 //check.cu
 extern void check_dt(cpu_param_t *param);
 extern void check_gpu(cpu_param_t *param);
-extern void check_gerr();
+extern void check_gerr(const char *a,const int b);
+extern void check_param(cpu_param_t *cparam);
+extern void check_json(cpu_json_t *cjson);
 
 //time_int.cu
-extern __global__ void cuda_prediction(gpu_ptc_t ptc_data, gpu_tmp_t tmp_data, gpu_param_t par);
-extern __global__ void cuda_correction(gpu_ptc_t ptc_data, gpu_tmp_t tmp_data, gpu_param_t par);
+extern __global__ void cuda_prediction(gpu_ptc_t *ptc_data, gpu_tmp_t *tmp_data, gpu_param_t *par);
+extern __global__ void cuda_correction(gpu_ptc_t *ptc_data, gpu_tmp_t *tmp_data, gpu_param_t *par);
 
 #endif

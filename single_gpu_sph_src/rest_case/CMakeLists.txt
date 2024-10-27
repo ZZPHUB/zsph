@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.8)
 project(zsph)
 
-include_directories("../header/")
+include_directories("../header/" "../../thirdparty/json/include")
 
 find_package(CUDA REQUIRED)
 find_package(VTK COMPONENTS
@@ -18,7 +18,10 @@ find_package(VTK COMPONENTS
 #include(${VTK_USE_FILE})
 #include(${CUDA_INCLUDE_DIRS})
 
-file(GLOB_RECURSE files "./*.cu" "../equation/*.cu" "../io/*.cu" "../lib/*.cu" "../rest_case/*.cu")
+#set(CUDA_NVCC_FLAGS -g;-G)
+file(GLOB_RECURSE files "./*.cu" "../equation/*.cu" "../io/*.cu" "../lib/*.cu")
+
+add_definitions(-DZSPH_BINARY)
 
 message(STATUS "cuda version: "${CUDA_VERSION_STRING})
 
@@ -30,4 +33,3 @@ vtk_module_autoinit(
   TARGETS zsph
   MODULES ${VTK_LIBRARIES}
 )
-

@@ -1,6 +1,8 @@
 #ifndef __DATA_STRUCTURE_CUH__
 #define __DATA_STRUCTURE_CUH__  
 
+#include "std_header.cuh"
+
 typedef struct 
 {
     /* cpu json data */
@@ -74,10 +76,11 @@ typedef struct
     float xmin,xmax,ymin,ymax,zmin,zmax;
 
     //grid part
+    int grid_factor; //to search the neighbor gird
     float grid_size; //single grid size
     float grid_xmin,grid_ymin,grid_zmin;//min position of grid in xyz direction
     float grid_xmax,grid_ymax,grid_zmax;//max position of grid in xyz direction
-    int grid_xdim,grid_ydim,gird_zdim;//num of grid in xyz direction
+    int grid_xdim,grid_ydim,grid_zdim;//num of grid in xyz direction
     int grid_num;//num of grid.grid_num = grid_xdim*grid_ydim*gird_zdim
     int grid_hash_min;//grid_hash_min = 0
     int grid_hash_max;//grid_hash_max = grid_num-1
@@ -119,6 +122,7 @@ typedef struct
     
     //grid part
     float grid_size;
+    int grid_factor;
     float grid_xmin,grid_ymin,grid_zmin;
     //int grid_num; //do not use
     int grid_xdim,grid_ydim,grid_zdim;
@@ -140,18 +144,6 @@ typedef struct
 
 typedef struct
 {
-    /*
-    float *pos_rho_old;
-    float *pos_rho_new;
-    float *vel_p_old;
-    float *vel_p_new;
-    float *acc_empty_old;
-    float *acc_empty_new;
-    float *type_old;
-    float *type_new;
-    float *table_old;
-    float *table_new;
-    */
    float *pos_rho;
    float *vel_p;
    float *tmp_pos_rho;//to save pos and rho for time integration
