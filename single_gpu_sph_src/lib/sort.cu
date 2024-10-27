@@ -27,8 +27,8 @@ __global__ void cuda_sort_data(gpu_ptc_t *data_old,gpu_ptc_t *data_new,gpu_tmp_t
         //find the grid start and end ptc
         if(hash != sharedHash[ threadIdx.x])
         {
-            tmp_data->grid_end[hash] = tid;
-            tmp_data->grid_start[sharedHash[ threadIdx.x]] = tid;
+            tmp_data->grid_start[hash] = tid;
+            tmp_data->grid_end[sharedHash[ threadIdx.x]] = tid;
             for(int i=sharedHash[ threadIdx.x]+1;i<hash;i++)
             {
                 tmp_data->grid_start[i] = tid;

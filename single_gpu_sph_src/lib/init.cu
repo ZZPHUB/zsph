@@ -143,12 +143,12 @@ void set_cpu_param(cpu_param_t *param, cpu_json_t *jdata)
 
     //grid setting
     param->grid_size = jdata->r_factor *jdata->h_factor * jdata->dx / jdata->grid_size_factor;
-    param->grid_factor = jdata->grid_size_factor;
+    param->grid_factor = (int)jdata->grid_size_factor;
     param->grid_xmin = jdata->xmin - param->grid_size * jdata->grid_layer_factor;
     param->grid_xmax = jdata->xmax + param->grid_size * jdata->grid_layer_factor;
     param->grid_ymin = jdata->ymin - param->grid_size * jdata->grid_layer_factor;
     param->grid_ymax = jdata->ymax + param->grid_size * jdata->grid_layer_factor;
-    param->grid_zmin = jdata->zmin - param->grid_size * jdata->grid_layer_factor;
+    param->grid_zmin = jdata->zmin - param->grid_size * jdata->grid_layer_factor; 
     param->grid_zmax = jdata->zmax + param->grid_size * jdata->grid_layer_factor;
     param->grid_xdim = (int)((param->grid_xmax - param->grid_xmin) / param->grid_size);
     param->grid_ydim = (int)((param->grid_ymax - param->grid_ymin) / param->grid_size);
