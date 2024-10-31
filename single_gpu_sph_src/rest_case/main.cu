@@ -45,8 +45,8 @@ int main(void)
     cudaMemcpy(d_gtmp_data,&h_gtmp_data,sizeof(gpu_tmp_t),cudaMemcpyHostToDevice);
     check_gerr(__FILE__,__LINE__);
     
-    //cpu_thread_t cthread[cparam.thread_num];
-    //mul_thread_creat(cthread,&cparam);
+    cpu_thread_t cthread[cparam.thread_num];
+    mul_thread_creat(cthread,&cparam);
 
     int grid = (cparam.ptc_num+255)/256;
     int block = 256;
@@ -90,13 +90,14 @@ int main(void)
         std::cout << "prediton step use:" << prediction_time.count() <<" correction step use:" << correction_time.count() << std::endl;
 
         int expect_0 = 0;
-        int ref_0 = expect_0;
+        int &ref_0 = expect_0;
+        bool flag = true;
 
         if(i%cparam.output_step==0)
         {
             //std::cout << "current i is:" << i << " current ref_0 is:" << ref_0 << std::endl;
-            /*
-            while(ref_0 == 0)
+            flag = true;
+            while(flag)
             {
 
                 for(int j=0;j<cparam.thread_num;j++)
@@ -110,19 +111,24 @@ int main(void)
                         cudaMemcpy(cthread[j].data.vel_p,h_old_gptc_data.vel_p,cparam.ptc_num*4*sizeof(float),cudaMemcpyDeviceToHost);
                         cudaMemcpy(cthread[j].data.type,h_old_gptc_data.type,cparam.ptc_num*sizeof(int),cudaMemcpyDeviceToHost);
                         cudaMemcpy(cthread[j].data.table,h_old_gptc_data.table,cparam.ptc_num*sizeof(int),cudaMemcpyDeviceToHost);
-                        check_gerr();
+                        check_gerr(__FILE__,__LINE__);
+                        flag = false;
                         //std::cout << "ref_0 is :" << ref_0 << std::endl;
                         cthread[j].write_flag.compare_exchange_strong(ref_0,1);
                     }
                 }
             }
-            */
+            
+            
+            /*
             std::string filename = cparam.output_path+"/zsph"+std::to_string(i)+".vtk";
             cudaMemcpy(cdata.pos_rho,h_old_gptc_data.pos_rho,sizeof(float)*4*cparam.ptc_num,cudaMemcpyDeviceToHost);
             cudaMemcpy(cdata.vel_p,h_old_gptc_data.vel_p,sizeof(float)*4*cparam.ptc_num,cudaMemcpyDeviceToHost);
             cudaMemcpy(cdata.type,h_old_gptc_data.type,sizeof(int)*cparam.ptc_num,cudaMemcpyDeviceToHost);
             cudaMemcpy(cdata.table,h_old_gptc_data.table,sizeof(int)*cparam.ptc_num,cudaMemcpyDeviceToHost);
             write_vtk(filename,&cdata,&cparam);
+            */
+            
         }
     }    
     delete_gpu_ptc_data(&h_old_gptc_data);

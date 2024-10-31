@@ -77,13 +77,13 @@ __global__ void cuda_correction(gpu_ptc_t *ptc_data, gpu_tmp_t *tmp_data, gpu_pa
             tmp_pos_rho.w = ptc_data->tmp_pos_rho[index * 4 + 3];
             
             //time intergration
-            tmp_pos_rho.x += tmp_vel_p.x*par->half_dt; //x
-            tmp_pos_rho.y += tmp_vel_p.y*par->half_dt; //y
-            tmp_pos_rho.z += tmp_vel_p.z*par->half_dt; //z
-            tmp_vel_p.x += tmp_data->acc_drhodt[index * 4 + 0]*par->half_dt; //vx
-            tmp_vel_p.y += tmp_data->acc_drhodt[index * 4 + 1]*par->half_dt; //vy
-            tmp_vel_p.z += tmp_data->acc_drhodt[index * 4 + 2]*par->half_dt; //vz
-            tmp_pos_rho.w += tmp_data->acc_drhodt[index * 4 + 3]*par->half_dt; //rho
+            tmp_pos_rho.x += ptc_data->vel_p[index*4 + 0]*par->half_dt*2.0f; //x
+            tmp_pos_rho.y += ptc_data->vel_p[index*4 + 1]*par->half_dt*2.0f; //y
+            tmp_pos_rho.z += ptc_data->vel_p[index*4 + 2]*par->half_dt*2.0f; //z
+            tmp_vel_p.x += tmp_data->acc_drhodt[index * 4 + 0]*par->half_dt*2.0f; //vx
+            tmp_vel_p.y += tmp_data->acc_drhodt[index * 4 + 1]*par->half_dt*2.0f; //vy
+            tmp_vel_p.z += tmp_data->acc_drhodt[index * 4 + 2]*par->half_dt*2.0f; //vz
+            tmp_pos_rho.w += tmp_data->acc_drhodt[index * 4 + 3]*par->half_dt*2.0f; //rho
             
 
             if(tmp_pos_rho.w < par->rho0)
