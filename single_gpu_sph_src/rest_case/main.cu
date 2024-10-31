@@ -2,10 +2,12 @@
 #include "io.cuh"
 #include "lib.cuh"
 
+/*
 __constant__ gpu_param_t d_gparam;
 __constant__ gpu_ptc_t d_old_gptc_data;
 __constant__ gpu_ptc_t d_new_gptc_data;
 __constant__ gpu_tmp_t d_gtmp_data;
+*/
 
 int main(void)
 {
