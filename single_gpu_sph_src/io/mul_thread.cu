@@ -4,8 +4,9 @@ void mul_thread_creat(cpu_thread_t *thread_pool,cpu_param_t *param)
 {
     for(int i=0;i<param->thread_num;i++)
     {
-        thread_pool[i].data.pos_rho = new float[param->ptc_num*4];
-        thread_pool[i].data.vel_p = new float[param->ptc_num*4];
+        thread_pool[i].data.pos = new float[param->ptc_num*3];
+        thread_pool[i].data.vel = new float[param->ptc_num*3];
+        thread_pool[i].data.rhop = new float[param->ptc_num*2];
         thread_pool[i].data.acc_drhodt = new float[param->ptc_num*4];
         thread_pool[i].data.type = new int[param->ptc_num];
         thread_pool[i].data.table = new int[param->ptc_num];
@@ -37,8 +38,9 @@ void mul_thread_output(cpu_thread_t *thread,cpu_param_t *param)
         ref_2 = 2;
         if(thread->end_flag.compare_exchange_strong(ref_end,0))
         {
-            delete[] thread->data.pos_rho;
-            delete[] thread->data.vel_p;
+            delete[] thread->data.pos;
+            delete[] thread->data.vel;
+            delete[] thread->data.rhop;
             delete[] thread->data.acc_drhodt;
             delete[] thread->data.type;
             delete[] thread->data.table;

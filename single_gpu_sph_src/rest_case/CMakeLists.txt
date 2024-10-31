@@ -19,6 +19,7 @@ find_package(VTK COMPONENTS
 #include(${CUDA_INCLUDE_DIRS})
 
 #set(CUDA_NVCC_FLAGS -g;-G)
+set(CUDA_NVCC_FLAGS -lineinfo;--ptxas-options=-v;-arch=compute_75;-code=sm_75;-maxrregcount 64)
 file(GLOB_RECURSE files "./*.cu" "../equation/*.cu" "../io/*.cu" "../lib/*.cu")
 
 add_definitions(-DZSPH_BINARY)

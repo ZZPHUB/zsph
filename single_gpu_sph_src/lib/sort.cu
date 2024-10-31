@@ -54,37 +54,24 @@ __global__ void cuda_sort_data(gpu_ptc_t *data_old,gpu_ptc_t *data_new,gpu_tmp_t
             }
         }
         
-        //reorder the pos_rho data
+        //reorder the pos data
         int old_index = tmp_data->index[tid]; //old index
-        data_new->pos_rho[tid * 4 + 0] = data_old->pos_rho[old_index * 4 + 0];
-        data_new->pos_rho[tid * 4 + 1] = data_old->pos_rho[old_index * 4 + 1];
-        data_new->pos_rho[tid * 4 + 2] = data_old->pos_rho[old_index * 4 + 2];
-        data_new->pos_rho[tid * 4 + 3] = data_old->pos_rho[old_index * 4 + 3];
+        data_new->pos[tid] = data_old->pos[old_index];
 
-        //reorder the vel_p data
-        data_new->vel_p[tid * 4 + 0] = data_old->vel_p[old_index * 4 + 0];
-        data_new->vel_p[tid * 4 + 1] = data_old->vel_p[old_index * 4 + 1];
-        data_new->vel_p[tid * 4 + 2] = data_old->vel_p[old_index * 4 + 2];
-        data_new->vel_p[tid * 4 + 3] = data_old->vel_p[old_index * 4 + 3];
+        //reorder the vel data
+        data_new->vel[tid] = data_old->vel[old_index];
 
-        //reorder the tmp_pos_rho data
-        data_new->tmp_pos_rho[tid * 4 + 0] = data_old->tmp_pos_rho[old_index * 4 + 0];
-        data_new->tmp_pos_rho[tid * 4 + 1] = data_old->tmp_pos_rho[old_index * 4 + 1];
-        data_new->tmp_pos_rho[tid * 4 + 2] = data_old->tmp_pos_rho[old_index * 4 + 2];
-        data_new->tmp_pos_rho[tid * 4 + 3] = data_old->tmp_pos_rho[old_index * 4 + 3];
+        //reorder the rhop data
+        data_new->rhop[tid] = data_old->rhop[old_index];
 
-        //reorder the tmp_vel_p data
-        data_new->tmp_vel_p[tid * 4 + 0] = data_old->tmp_vel_p[old_index * 4 + 0];
-        data_new->tmp_vel_p[tid * 4 + 1] = data_old->tmp_vel_p[old_index * 4 + 1];
-        data_new->tmp_vel_p[tid * 4 + 2] = data_old->tmp_vel_p[old_index * 4 + 2];
-        data_new->tmp_vel_p[tid * 4 + 3] = data_old->tmp_vel_p[old_index * 4 + 3];
+        //reorder the tmp_pos data
+        data_new->tmp_pos[tid] = data_old->tmp_pos[old_index];
 
-        /*
-        data_new->acc_empty[tid * 4 + 0] = data_old->acc_empty[old_index * 4 + 0];
-        data_new->acc_empty[tid * 4 + 1] = data_old->acc_empty[old_index * 4 + 1];
-        data_new->acc_empty[tid * 4 + 2] = data_old->acc_empty[old_index * 4 + 2];
-        data_new->acc_empty[tid * 4 + 3] = data_old->acc_empty[old_index * 4 + 3];
-        */
+        //reorder the tmp_vel data
+        data_new->tmp_vel[tid] = data_old->tmp_vel[old_index];
+        
+        //reorder the tmp_rhop data
+        data_new->tmp_rhop[tid] = data_old->tmp_rhop[old_index];
 
         data_new->type[tid] = data_old->type[old_index];
         data_new->table[tid] = data_old->table[old_index] + old_index - tid;

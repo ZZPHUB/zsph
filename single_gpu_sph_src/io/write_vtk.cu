@@ -43,9 +43,9 @@ void write_vtk(std::string filename, cpu_data_t *data, cpu_param_t *param)
     for (int i = 0; i < param->ptc_num; i++)
     {
         float x[3];
-        x[0] = trans(data->pos_rho[i * 4 + 0]);
-        x[1] = trans(data->pos_rho[i * 4 + 1]);
-        x[2] = trans(data->pos_rho[i * 4 + 2]);
+        x[0] = trans(data->pos[i * 3 + 0]);
+        x[1] = trans(data->pos[i * 3 + 1]);
+        x[2] = trans(data->pos[i * 3 + 2]);
         // std::cout << data->pos_rho[i*4]<< " " << data->pos_rho[i*4+1] <<" " << data->pos_rho[i*4+2] << std::endl;
         ofile.write((char *)x, 3 * sizeof(float));
     }
@@ -58,8 +58,8 @@ void write_vtk(std::string filename, cpu_data_t *data, cpu_param_t *param)
     ofile << "LOOKUP_TABLE default" << std::endl;
     for (int i = 0; i < param->ptc_num; i++)
     {
-        float rho = trans(data->pos_rho[i * 4 + 3])
-                        ofile.write((char *)&rho, sizeof(float));
+        float rho = trans(data->rhop[i * 2 ])
+        ofile.write((char *)&rho, sizeof(float));
     }
 #endif
 
@@ -67,7 +67,7 @@ void write_vtk(std::string filename, cpu_data_t *data, cpu_param_t *param)
     ofile << "LOOKUP_TABLE default" << std::endl;
     for (int i = 0; i < param->ptc_num; i++)
     {
-        float p = trans(data->vel_p[i * 4 + 3]);
+        float p = trans(data->rhop[i * 2 + 1]);
         ofile.write((char *)&p, sizeof(float));
     }
 
@@ -83,9 +83,9 @@ void write_vtk(std::string filename, cpu_data_t *data, cpu_param_t *param)
     for (int i = 0; i < param->ptc_num; i++)
     {
         float vel[3];
-        vel[0] = trans(data->vel_p[i * 4 + 0]);
-        vel[1] = trans(data->vel_p[i * 4 + 1]);
-        vel[2] = trans(data->vel_p[i * 4 + 2]);
+        vel[0] = trans(data->vel[i *3 + 0]);
+        vel[1] = trans(data->vel[i *3 + 1]);
+        vel[2] = trans(data->vel[i *3 + 2]);
         ofile.write((char *)vel, 3 * sizeof(float));
     }
 
@@ -94,10 +94,10 @@ void write_vtk(std::string filename, cpu_data_t *data, cpu_param_t *param)
     for (int i = 0; i < param->ptc_num; i++)
     {
         float acc[3];
-        acc[0] = trans(data->acc_empty[i * 4 + 0]);
-        acc[1] = trans(data->acc_empty[i * 4 + 1]);
-        acc[2] = trans(data->acc_empty[i * 4 + 2]);
-        ofile.write((char *)acc, sizeof(float));
+        acc[0] = trans(data->acc_drhodt[i * 4 + 0]);
+        acc[1] = trans(data->acc_drhodt[i * 4 + 1]);
+        acc[2] = trans(data->acc_drhodt[i * 4 + 2]);
+        ofile.write((char *)acc, 3*sizeof(float));
     }
 #endif
     ofile.close();
@@ -115,7 +115,7 @@ void write_vtk(std::string filename, cpu_data_t *data, cpu_param_t *param)
     ofile << "POINTS " << param->ptc_num << " float" << std::endl;
     for (int i = 0; i < param->ptc_num; i++)
     {
-        ofile << data->pos_rho[i * 4 + 0] << " " << data->pos_rho[i * 4 + 1] << " " << data->pos_rho[i * 4 + 2] << std::endl;
+        ofile << data->pos[i * 3 + 0] << " " << data->pos[i *3 + 1] << " " << data->pos[i * 3 + 2] << std::endl;
     }
     ofile << "POINT_DATA " << param->ptc_num << std::endl;
 
@@ -124,7 +124,7 @@ void write_vtk(std::string filename, cpu_data_t *data, cpu_param_t *param)
     ofile << "LOOKUP_TABLE default" << std::endl;
     for (int i = 0; i < param->ptc_num; i++)
     {
-        ofile << data->pos_rho[i * 4 + 3] << std::endl;
+        ofile << data->rhop[i *2 ] << std::endl;
     }
 #endif
 
@@ -132,7 +132,7 @@ void write_vtk(std::string filename, cpu_data_t *data, cpu_param_t *param)
     ofile << "LOOKUP_TABLE default" << std::endl;
     for (int i = 0; i < param->ptc_num; i++)
     {
-        ofile << data->vel_p[i * 4 + 3] << std::endl;
+        ofile << data->rhop[i * 2 + 1] << std::endl;
     }
 
     ofile << "SCALARS type int 1" << std::endl;
@@ -145,7 +145,7 @@ void write_vtk(std::string filename, cpu_data_t *data, cpu_param_t *param)
     ofile << "VECTORS vel float" << std::endl;
     for (int i = 0; i < param->ptc_num; i++)
     {
-        ofile << data->vel_p[i * 4 + 0] << " " << data->vel_p[i * 4 + 1] << " " << data->vel_p[i * 4 + 2] << std::endl;
+        ofile << data->vel[i * 3 + 0] << " " << data->vel[i * 3 + 1] << " " << data->vel[i * 3 + 2] << std::endl;
     }
 
 #ifdef ZSPH_DEBUG

@@ -67,16 +67,17 @@ void read_vtk(cpu_data_t *data, cpu_param_t *param)
         if(table_data != nullptr) table = table_data->GetValue(i);
         vtkdata->GetPoint(i, pos); //must have pos , so cannot be nullptr
 
-        // get data of pos and rho
-        data->pos_rho[index*4] = (float)pos[0];
-        data->pos_rho[index*4 + 1] = (float)pos[1];
-        data->pos_rho[index*4 + 2] = (float)pos[2];
-        data->pos_rho[index*4 + 3] = (float)rho;
-        // get data of vel and p
-        data->vel_p[index*4] = (float)vel[0];
-        data->vel_p[index*4 + 1] = (float)vel[1];
-        data->vel_p[index*4 + 2] = (float)vel[2];
-        data->vel_p[index*4 + 3] = (float)p;
+        // get data of pos
+        data->pos[index*3] = (float)pos[0];
+        data->pos[index*3 + 1] = (float)pos[1];
+        data->pos[index*3 + 2] = (float)pos[2];
+        // get data of vel
+        data->vel[index*3] = (float)vel[0];
+        data->vel[index*3 + 1] = (float)vel[1];
+        data->vel[index*3 + 2] = (float)vel[2];
+        //get data of rho and p
+        data->rhop[index*2] = rho;
+        data->rhop[index*2+1] = p;
         // get data of acc and drhodt
         data->acc_drhodt[index*4] = (float)acc[0];
         data->acc_drhodt[index*4 + 1] = (float)acc[1];

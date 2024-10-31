@@ -2,10 +2,10 @@
 #include "io.cuh"
 #include "lib.cuh"
 
-//__constant__ gpu_param_t d_gparam;
-//__constant__ gpu_ptc_t d_old_gptc_data;
-//__constant__ gpu_ptc_t d_new_gptc_data;
-//__constant__ gpu_tmp_t d_gtmp_data;
+__constant__ gpu_param_t d_gparam;
+__constant__ gpu_ptc_t d_old_gptc_data;
+__constant__ gpu_ptc_t d_new_gptc_data;
+__constant__ gpu_tmp_t d_gtmp_data;
 
 int main(void)
 {
@@ -26,23 +26,38 @@ int main(void)
     check_gpu(&cparam); 
     cudaDeviceReset();
     cudaSetDevice(cparam.gpu_id);
+
     gpu_param_t h_gparam;
     gpu_ptc_t h_old_gptc_data;
     gpu_ptc_t h_new_gptc_data;
     gpu_tmp_t h_gtmp_data;
+
     set_gpu_param(&h_gparam, &cparam);
+
     alloc_gpu_ptc_data(&h_old_gptc_data, &cparam);
     alloc_gpu_ptc_data(&h_new_gptc_data, &cparam);
     alloc_gpu_tmp_data(&h_gtmp_data, &cparam);
+
     cpu_to_gpu(&h_old_gptc_data,&h_gtmp_data,&cdata,&cparam);
+
+    
     gpu_param_t *d_gparam; cudaMalloc(&d_gparam,sizeof(gpu_param_t));
     gpu_ptc_t *d_old_gptc_data; cudaMalloc(&d_old_gptc_data,sizeof(gpu_ptc_t));
     gpu_ptc_t *d_new_gptc_data; cudaMalloc(&d_new_gptc_data,sizeof(gpu_ptc_t));
     gpu_tmp_t *d_gtmp_data; cudaMalloc(&d_gtmp_data,sizeof(gpu_tmp_t));
+
     cudaMemcpy(d_gparam,&h_gparam,sizeof(gpu_param_t),cudaMemcpyHostToDevice);
     cudaMemcpy(d_old_gptc_data,&h_old_gptc_data,sizeof(gpu_ptc_t),cudaMemcpyHostToDevice);
     cudaMemcpy(d_new_gptc_data,&h_new_gptc_data,sizeof(gpu_ptc_t),cudaMemcpyHostToDevice);
     cudaMemcpy(d_gtmp_data,&h_gtmp_data,sizeof(gpu_tmp_t),cudaMemcpyHostToDevice);
+    
+    /*
+    cudaMemcpyToSymbol(d_gparam,&h_gparam,sizeof(gpu_param_t));
+    cudaMemcpyToSymbol(d_old_gptc_data,&h_old_gptc_data,sizeof(gpu_ptc_t));
+    cudaMemcpyToSymbol(d_new_gptc_data,&h_new_gptc_data,sizeof(gpu_ptc_t));
+    cudaMemcpyToSymbol(d_gtmp_data,&h_gtmp_data,sizeof(gpu_tmp_t));
+    */
+
     check_gerr(__FILE__,__LINE__);
     
     cpu_thread_t cthread[cparam.thread_num];
@@ -57,7 +72,8 @@ int main(void)
         auto time_prob_0 = std::chrono::high_resolution_clock::now();
 
         cuda_ptc_hash<<<grid,block>>>(d_old_gptc_data,d_gtmp_data,d_gparam);
-        //check_gerr(__FILE__,__LINE__);
+        check_gerr(__FILE__,__LINE__);
+        
         cuda_sort_index(h_gtmp_data,cparam);
         //check_gerr(__FILE__,__LINE__);
         cuda_sort_data<<<grid,block>>>(d_old_gptc_data,d_new_gptc_data,d_gtmp_data,d_gparam);
@@ -83,6 +99,7 @@ int main(void)
         //check_gerr(__FILE__,__LINE__);
         cuda_correction<<<grid,block>>>(d_old_gptc_data,d_gtmp_data,d_gparam);
         check_gerr(__FILE__,__LINE__);
+        
         auto time_prob_2 = std::chrono::high_resolution_clock::now();
         
         std::chrono::duration<double> prediction_time = time_prob_1 - time_prob_0;
@@ -107,8 +124,9 @@ int main(void)
                     {
                         cparam.current_step = i;
                         cthread[j].current_step = i;
-                        cudaMemcpy(cthread[j].data.pos_rho,h_old_gptc_data.pos_rho,cparam.ptc_num*4*sizeof(float),cudaMemcpyDeviceToHost);
-                        cudaMemcpy(cthread[j].data.vel_p,h_old_gptc_data.vel_p,cparam.ptc_num*4*sizeof(float),cudaMemcpyDeviceToHost);
+                        cudaMemcpy(cthread[j].data.pos,h_old_gptc_data.pos,cparam.ptc_num*3*sizeof(float),cudaMemcpyDeviceToHost);
+                        cudaMemcpy(cthread[j].data.vel,h_old_gptc_data.vel,cparam.ptc_num*3*sizeof(float),cudaMemcpyDeviceToHost);
+                        cudaMemcpy(cthread[j].data.rhop,h_old_gptc_data.rhop,cparam.ptc_num*2*sizeof(float),cudaMemcpyDeviceToHost);
                         cudaMemcpy(cthread[j].data.type,h_old_gptc_data.type,cparam.ptc_num*sizeof(int),cudaMemcpyDeviceToHost);
                         cudaMemcpy(cthread[j].data.table,h_old_gptc_data.table,cparam.ptc_num*sizeof(int),cudaMemcpyDeviceToHost);
                         check_gerr(__FILE__,__LINE__);
@@ -131,6 +149,7 @@ int main(void)
             
         }
     }    
+    delete_cpu_data(&cdata);
     delete_gpu_ptc_data(&h_old_gptc_data);
     delete_gpu_ptc_data(&h_new_gptc_data);
     delete_gpu_tmp_data(&h_gtmp_data);

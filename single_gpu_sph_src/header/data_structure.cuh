@@ -135,8 +135,13 @@ typedef struct
 
 typedef struct
 {
+    float *pos;
+    float *vel;
+    float *rhop;
+    /*
     float *pos_rho;
     float *vel_p;
+    */
     float *acc_drhodt;
     int *type;
     int *table;
@@ -144,17 +149,19 @@ typedef struct
 
 typedef struct
 {
-   float *pos_rho;
-   float *vel_p;
-   float *tmp_pos_rho;//to save pos and rho for time integration
-   float *tmp_vel_p;//to save vel and p for time integration
-   int *type;
-   int *table;
+    float3 *pos;
+    float3 *vel;
+    float2 *rhop;
+    float3 *tmp_pos; //to save pos for time integration
+    float3 *tmp_vel; //to save vel for time integration
+    float2 *tmp_rhop; //to save rho and p for time intergration
+    int *type;
+    int *table;
 }gpu_ptc_t;
 
 typedef struct 
 {
-    float *acc_drhodt;
+    float4 *acc_drhodt;
     float *dofv;
     int *index;
     int *hash;

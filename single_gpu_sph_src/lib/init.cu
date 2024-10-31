@@ -9,8 +9,9 @@ void alloc_cpu_data(cpu_data_t *cdata,cpu_param_t *param)
     cdata->type = new int[param->ptc_num];
     cdata->table = new int[param->ptc_num];
     */
-    cdata->pos_rho = (float *)calloc(4*param->ptc_num,sizeof(float));
-    cdata->vel_p= (float *)calloc(4*param->ptc_num,sizeof(float));
+    cdata->pos = (float *)calloc(3*param->ptc_num,sizeof(float));
+    cdata->vel= (float *)calloc(3*param->ptc_num,sizeof(float));
+    cdata->rhop = (float *)calloc(2*param->ptc_num,sizeof(float));
     cdata->acc_drhodt = (float *)calloc(4*param->ptc_num,sizeof(float));
     cdata->type = (int *)calloc(param->ptc_num,sizeof(int));
     cdata->table = (int *)calloc(param->ptc_num,sizeof(int));
@@ -26,8 +27,9 @@ void delete_cpu_data(cpu_data_t *cdata)
     delete [] cdata->type;
     delete [] cdata->table;
     */
-   free(cdata->pos_rho);
-   free(cdata->vel_p);
+   free(cdata->pos);
+   free(cdata->vel);
+   free(cdata->rhop);
    free(cdata->acc_drhodt);
    free(cdata->type);
    free(cdata->table);
@@ -35,17 +37,28 @@ void delete_cpu_data(cpu_data_t *cdata)
 
 void alloc_gpu_ptc_data(gpu_ptc_t *gptc_data,cpu_param_t *param)
 {
-    cudaMalloc(&(gptc_data->pos_rho),param->ptc_num*4*sizeof(float));
-    cudaMalloc(&(gptc_data->vel_p),param->ptc_num*4*sizeof(float));
-    cudaMalloc(&(gptc_data->tmp_pos_rho),param->ptc_num*4*sizeof(float));
-    cudaMalloc(&(gptc_data->tmp_vel_p),param->ptc_num*4*sizeof(float));
+    cudaMalloc(&(gptc_data->pos),param->ptc_num*sizeof(float3));
+    cudaMalloc(&(gptc_data->vel),param->ptc_num*sizeof(float3));
+
+    cudaMalloc(&(gptc_data->tmp_pos),param->ptc_num*sizeof(float3));
+    cudaMalloc(&(gptc_data->tmp_vel),param->ptc_num*sizeof(float3));
+
+    cudaMalloc(&(gptc_data->rhop),param->ptc_num*sizeof(float2));
+    cudaMalloc(&(gptc_data->tmp_rhop),param->ptc_num*sizeof(float2));
+
     cudaMalloc(&(gptc_data->type),param->ptc_num*sizeof(int));
     cudaMalloc(&(gptc_data->table),param->ptc_num*sizeof(int));
+
     //mem set to zero
-    cudaMemset(gptc_data->pos_rho,0.0f,param->ptc_num*4*sizeof(float));
-    cudaMemset(gptc_data->vel_p,0.0f,param->ptc_num*4*sizeof(float));
-    cudaMemset(gptc_data->tmp_pos_rho,0.0f,param->ptc_num*4*sizeof(float));
-    cudaMemset(gptc_data->tmp_vel_p,0.0f,param->ptc_num*4*sizeof(float));
+    cudaMemset(gptc_data->pos,0,param->ptc_num*sizeof(float3));
+    cudaMemset(gptc_data->vel,0,param->ptc_num*sizeof(float3));
+
+    cudaMemset(gptc_data->tmp_pos,0,param->ptc_num*sizeof(float3));
+    cudaMemset(gptc_data->tmp_vel,0,param->ptc_num*sizeof(float3));
+
+    cudaMemset(gptc_data->rhop,0,param->ptc_num*sizeof(float2));
+    cudaMemset(gptc_data->tmp_rhop,0,param->ptc_num*sizeof(float2));
+
     cudaMemset(gptc_data->type,0,param->ptc_num*sizeof(int));
     cudaMemset(gptc_data->type,0,param->ptc_num*sizeof(int));
     check_gerr(__FILE__,__LINE__);
@@ -54,10 +67,12 @@ void alloc_gpu_ptc_data(gpu_ptc_t *gptc_data,cpu_param_t *param)
 
 void delete_gpu_ptc_data(gpu_ptc_t *gptc_data)
 {
-    cudaFree(gptc_data->pos_rho);
-    cudaFree(gptc_data->vel_p);
-    cudaFree(gptc_data->tmp_pos_rho);
-    cudaFree(gptc_data->tmp_vel_p);
+    cudaFree(gptc_data->pos);
+    cudaFree(gptc_data->vel);
+    cudaFree(gptc_data->tmp_pos);
+    cudaFree(gptc_data->tmp_vel);
+    cudaFree(gptc_data->rhop);
+    cudaFree(gptc_data->tmp_rhop);
     cudaFree(gptc_data->type);
     cudaFree(gptc_data->table);
     check_gerr(__FILE__,__LINE__);
@@ -67,7 +82,7 @@ void delete_gpu_ptc_data(gpu_ptc_t *gptc_data)
 void alloc_gpu_tmp_data(gpu_tmp_t *gtmp_data,cpu_param_t *param)
 {
     //tmp data
-    cudaMalloc(&(gtmp_data->acc_drhodt),param->ptc_num*4*sizeof(float));
+    cudaMalloc(&(gtmp_data->acc_drhodt),param->ptc_num*sizeof(float4));
     cudaMalloc(&(gtmp_data->dofv),param->ptc_num*sizeof(float));
 
     //hash and index
@@ -79,7 +94,7 @@ void alloc_gpu_tmp_data(gpu_tmp_t *gtmp_data,cpu_param_t *param)
     cudaMalloc(&(gtmp_data->grid_start),param->grid_num*sizeof(int));
 
     //mem set to zero for safety
-    cudaMemset(gtmp_data->acc_drhodt,0,param->ptc_num*4*sizeof(float));
+    cudaMemset(gtmp_data->acc_drhodt,0,param->ptc_num*sizeof(float4));
     cudaMemset(gtmp_data->dofv,0,param->ptc_num*sizeof(float));
     //hash and index
     cudaMemset(gtmp_data->hash,0,param->ptc_num*sizeof(int));
@@ -106,14 +121,17 @@ void delete_gpu_tmp_data(gpu_tmp_t *gtmp_data)
 
 void cpu_to_gpu(gpu_ptc_t *gptc_data,gpu_tmp_t *gtmp_data,cpu_data_t *cdata,cpu_param_t *param)
 {
+
     //copy ptc data from cpu to gpu
-    cudaMemcpy(gptc_data->pos_rho,cdata->pos_rho,param->ptc_num*4*sizeof(float),cudaMemcpyHostToDevice);
-    cudaMemcpy(gptc_data->vel_p,cdata->vel_p,param->ptc_num*4*sizeof(float),cudaMemcpyHostToDevice);
+    cudaMemcpy(gptc_data->pos,cdata->pos,param->ptc_num*sizeof(float3),cudaMemcpyHostToDevice);
+    cudaMemcpy(gptc_data->vel,cdata->vel,param->ptc_num*sizeof(float3),cudaMemcpyHostToDevice);
+    cudaMemcpy(gptc_data->rhop,cdata->rhop,param->ptc_num*sizeof(float2),cudaMemcpyHostToDevice);
+
     cudaMemcpy(gptc_data->type,cdata->type,param->ptc_num*sizeof(int),cudaMemcpyHostToDevice);
     cudaMemcpy(gptc_data->table,cdata->table,param->ptc_num*sizeof(int),cudaMemcpyHostToDevice);
 
     //copy tmp data from cpu to gpu where tmp data may be setting as a initial value
-    cudaMemcpy(gtmp_data->acc_drhodt,cdata->acc_drhodt,param->ptc_num*4*sizeof(float),cudaMemcpyHostToDevice);
+    cudaMemcpy(gtmp_data->acc_drhodt,cdata->acc_drhodt,param->ptc_num*sizeof(float4),cudaMemcpyHostToDevice);
     //check cuda error
     check_gerr(__FILE__,__LINE__);
 }
