@@ -3,6 +3,18 @@
 __global__ void cuda_boundary_ns(gpu_ptc_t *ptc_data, gpu_tmp_t *tmp_data, gpu_param_t *par)
 {
     const int index = (blockIdx.x * blockDim.x) + threadIdx.x;
+    __shared__ float3* tpos;
+    __shared__ float3* tvel;
+    __shared__ float2* trhop;
+    __shared__ int* ttype;
+    if(threadIdx.x == 0)
+    {
+	    tpos = ptc_data->pos;
+	    tvel = ptc_data->vel;
+	    trhop = ptc_data->rhop;
+	    ttype = ptc_data->type;
+    }
+    __syncthreads();
     if(index < par->ptc_num)
     {
         float rhop_sum_tmp = 0.0f;
@@ -11,9 +23,9 @@ __global__ void cuda_boundary_ns(gpu_ptc_t *ptc_data, gpu_tmp_t *tmp_data, gpu_p
         float3 pos,vel;
         int type_0;
 
-        type_0 = ptc_data->type[index];
-        pos = ptc_data->pos[index];
-        vel = ptc_data->vel[index];
+        type_0 = ttype[index];
+        pos = tpos[index];
+        vel = tvel[index];
 
         int type_1;
         //float rho_1;
@@ -38,10 +50,10 @@ __global__ void cuda_boundary_ns(gpu_ptc_t *ptc_data, gpu_tmp_t *tmp_data, gpu_p
                     {
                         if(i != index )
                         {
-                            dx = ptc_data->pos[i];
-                            dv = ptc_data->vel[i];
-                            rhop_1 = ptc_data->rhop[i];
-                            type_1 = ptc_data->type[i];
+                            dx = tpos[i];
+                            dv = tvel[i];
+                            rhop_1 = trhop[i];
+                            type_1 = ttype[i];
 
                             dx.x = pos.x - dx.x;
                             dx.y = pos.y - dx.y;
@@ -96,6 +108,19 @@ __global__ void cuda_boundary_ns(gpu_ptc_t *ptc_data, gpu_tmp_t *tmp_data, gpu_p
 __global__ void cuda_govering_ns(gpu_ptc_t *ptc_data, gpu_tmp_t *tmp_data, gpu_param_t *par)
 {
     const int index = (blockIdx.x * blockDim.x) + threadIdx.x;
+    __shared__ float3* tpos;
+    __shared__ float3* tvel;
+    __shared__ float2* trhop;
+    __shared__ int* ttype;
+
+    if(threadIdx.x == 0)
+    {
+	    tpos = ptc_data->pos;
+	    tvel = ptc_data->vel;
+	    trhop = ptc_data->rhop;
+	    ttype = ptc_data->type;
+    }
+    __syncthreads();
     if(index < par->ptc_num)
     {
         float4 acc_drhodt = make_float4(0.0f,0.0f,0.0f,0.0f);
@@ -104,12 +129,12 @@ __global__ void cuda_govering_ns(gpu_ptc_t *ptc_data, gpu_tmp_t *tmp_data, gpu_p
         float dofv_0;
         int type_0; 
         
-        type_0= ptc_data->type[index];
+        type_0 = ttype[index];
         dofv_0 = tmp_data->dofv[index];
 
-        pos = ptc_data->pos[index];
-        vel = ptc_data->vel[index];
-        rhop_0 = ptc_data->rhop[index];
+        pos = tpos[index];
+        vel = tvel[index];
+        rhop_0 = trhop[index];
        
         int type_1;
         float2 rhop_1;
@@ -133,11 +158,11 @@ __global__ void cuda_govering_ns(gpu_ptc_t *ptc_data, gpu_tmp_t *tmp_data, gpu_p
                     {
                         if(i != index )
                         {
-                            dx = ptc_data->pos[i];
-                            dv = ptc_data->vel[i];
-                            rhop_1 = ptc_data->rhop[i];
+                            dx = tpos[i];
+                            dv = tvel[i];
+                            rhop_1 = trhop[i];
 
-                            type_1 = ptc_data->type[i];
+                            type_1 = ttype[i];
                             dofv_1 = tmp_data->dofv[i];
 
                             dx.x = pos.x - dx.x;
