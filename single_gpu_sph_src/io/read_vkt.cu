@@ -1,6 +1,6 @@
 #include "io.cuh"
 
-void read_vtk(cpu_data_t *data, cpu_param_t *param)
+void read_vtk(cpu_input_t *data, cpu_param_t *param)
 {
     std::string file_name = param->input_path + "/input.vtk";
     vtkSmartPointer<vtkUnstructuredGridReader> reader = vtkSmartPointer<vtkUnstructuredGridReader>::New();

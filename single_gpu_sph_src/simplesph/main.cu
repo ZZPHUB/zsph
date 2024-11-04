@@ -2,18 +2,14 @@
 #include "io.cuh"
 #include "lib.cuh"
 
-/*
-__constant__ gpu_param_t d_gparam;
-__constant__ gpu_ptc_t d_old_gptc_data;
-__constant__ gpu_ptc_t d_new_gptc_data;
-__constant__ gpu_tmp_t d_gtmp_data;
-*/
+__constant__ gpu_param_t par;
+__constant__ gpu_tmp_t tmp_data;
 
 int main(void)
 {
     cpu_json_t jdata;
     cpu_param_t cparam;
-    cpu_data_t cdata; 
+    cpu_input_t cdata; 
     read_json("../input/input.json", &jdata);
     set_cpu_param(&cparam, &jdata);
     alloc_cpu_data(&cdata, &cparam);
@@ -42,23 +38,14 @@ int main(void)
 
     cpu_to_gpu(&h_old_gptc_data,&h_gtmp_data,&cdata,&cparam);
 
-    
-    gpu_param_t *d_gparam; cudaMalloc(&d_gparam,sizeof(gpu_param_t));
     gpu_ptc_t *d_old_gptc_data; cudaMalloc(&d_old_gptc_data,sizeof(gpu_ptc_t));
     gpu_ptc_t *d_new_gptc_data; cudaMalloc(&d_new_gptc_data,sizeof(gpu_ptc_t));
-    gpu_tmp_t *d_gtmp_data; cudaMalloc(&d_gtmp_data,sizeof(gpu_tmp_t));
-
-    cudaMemcpy(d_gparam,&h_gparam,sizeof(gpu_param_t),cudaMemcpyHostToDevice);
+;
     cudaMemcpy(d_old_gptc_data,&h_old_gptc_data,sizeof(gpu_ptc_t),cudaMemcpyHostToDevice);
     cudaMemcpy(d_new_gptc_data,&h_new_gptc_data,sizeof(gpu_ptc_t),cudaMemcpyHostToDevice);
-    cudaMemcpy(d_gtmp_data,&h_gtmp_data,sizeof(gpu_tmp_t),cudaMemcpyHostToDevice);
-    
-    /*
-    cudaMemcpyToSymbol(d_gparam,&h_gparam,sizeof(gpu_param_t));
-    cudaMemcpyToSymbol(d_old_gptc_data,&h_old_gptc_data,sizeof(gpu_ptc_t));
-    cudaMemcpyToSymbol(d_new_gptc_data,&h_new_gptc_data,sizeof(gpu_ptc_t));
-    cudaMemcpyToSymbol(d_gtmp_data,&h_gtmp_data,sizeof(gpu_tmp_t));
-    */
+
+    cudaMemcpyToSymbol(par,&h_gparam,sizeof(gpu_param_t));
+    cudaMemcpyToSymbol(tmp_data,&h_gtmp_data,sizeof(gpu_tmp_t));
 
     check_gerr(__FILE__,__LINE__);
     
@@ -73,33 +60,32 @@ int main(void)
         std::cout << "Zsph is calculating the " << i << " steps... " ;
         auto time_prob_0 = std::chrono::high_resolution_clock::now();
 
-        cuda_ptc_hash<<<grid,block>>>(d_old_gptc_data,d_gtmp_data,d_gparam);
-        check_gerr(__FILE__,__LINE__);
-        
+        cuda_ptc_hash<<<grid,block>>>(d_old_gptc_data);
+        //check_gerr(__FILE__,__LINE__);
         cuda_sort_index(h_gtmp_data,cparam);
         //check_gerr(__FILE__,__LINE__);
-        cuda_sort_data<<<grid,block>>>(d_old_gptc_data,d_new_gptc_data,d_gtmp_data,d_gparam);
+        cuda_sort_data<<<grid,block>>>(d_old_gptc_data,d_new_gptc_data);
         //check_gerr(__FILE__,__LINE__);
-        cuda_boundary_ns<<<grid,block>>>(d_new_gptc_data,d_gtmp_data,d_gparam);
+        cuda_boundary_ns<<<grid,block>>>(d_new_gptc_data);
         //check_gerr(__FILE__,__LINE__);
-        cuda_govering_ns<<<grid,block>>>(d_new_gptc_data,d_gtmp_data,d_gparam);
+        cuda_govering_ns<<<grid,block>>>(d_new_gptc_data);
         //check_gerr(__FILE__,__LINE__);
-        cuda_prediction<<<grid,block>>>(d_new_gptc_data,d_gtmp_data,d_gparam);
+        cuda_prediction<<<grid,block>>>(d_new_gptc_data);
         check_gerr(__FILE__,__LINE__);
 
         cudaDeviceSynchronize();
         auto time_prob_1 = std::chrono::high_resolution_clock::now();
 
-        cuda_ptc_hash<<<grid,block>>>(d_new_gptc_data,d_gtmp_data,d_gparam);
+        cuda_ptc_hash<<<grid,block>>>(d_new_gptc_data);
        // check_gerr(__FILE__,__LINE__);
         cuda_sort_index(h_gtmp_data,cparam);
-        cuda_sort_data<<<grid,block>>>(d_new_gptc_data,d_old_gptc_data,d_gtmp_data,d_gparam);
+        cuda_sort_data<<<grid,block>>>(d_new_gptc_data,d_old_gptc_data);
         //check_gerr(__FILE__,__LINE__);
-        cuda_boundary_ns<<<grid,block>>>(d_old_gptc_data,d_gtmp_data,d_gparam);
+        cuda_boundary_ns<<<grid,block>>>(d_old_gptc_data);
         //check_gerr(__FILE__,__LINE__);
-        cuda_govering_ns<<<grid,block>>>(d_old_gptc_data,d_gtmp_data,d_gparam);
+        cuda_govering_ns<<<grid,block>>>(d_old_gptc_data);
         //check_gerr(__FILE__,__LINE__);
-        cuda_correction<<<grid,block>>>(d_old_gptc_data,d_gtmp_data,d_gparam);
+        cuda_correction<<<grid,block>>>(d_old_gptc_data);
         check_gerr(__FILE__,__LINE__);
         
         auto time_prob_2 = std::chrono::high_resolution_clock::now();
@@ -126,12 +112,16 @@ int main(void)
                     {
                         cparam.current_step = i;
                         cthread[j].current_step = i;
+                        /*
                         cudaMemcpy(cthread[j].data.pos,h_old_gptc_data.pos,cparam.ptc_num*3*sizeof(float),cudaMemcpyDeviceToHost);
                         cudaMemcpy(cthread[j].data.vel,h_old_gptc_data.vel,cparam.ptc_num*3*sizeof(float),cudaMemcpyDeviceToHost);
                         cudaMemcpy(cthread[j].data.rhop,h_old_gptc_data.rhop,cparam.ptc_num*2*sizeof(float),cudaMemcpyDeviceToHost);
                         cudaMemcpy(cthread[j].data.type,h_old_gptc_data.type,cparam.ptc_num*sizeof(int),cudaMemcpyDeviceToHost);
                         cudaMemcpy(cthread[j].data.table,h_old_gptc_data.table,cparam.ptc_num*sizeof(int),cudaMemcpyDeviceToHost);
+                        
                         check_gerr(__FILE__,__LINE__);
+                        */
+                        gpu_to_cpu(&(cthread[j].data),&h_old_gptc_data,&h_gtmp_data,&cparam);
                         flag = false;
                         //std::cout << "ref_0 is :" << ref_0 << std::endl;
                         cthread[j].write_flag.compare_exchange_strong(ref_0,1);

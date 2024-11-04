@@ -1,6 +1,6 @@
 #include "lib.cuh"
 
-void alloc_cpu_data(cpu_data_t *cdata,cpu_param_t *param)
+void alloc_cpu_data(cpu_input_t *cdata,cpu_param_t *param)
 {
     /*
     cdata->pos_rho = new float[param->ptc_num*4];
@@ -18,7 +18,7 @@ void alloc_cpu_data(cpu_data_t *cdata,cpu_param_t *param)
 
 }
 
-void delete_cpu_data(cpu_data_t *cdata)
+void delete_cpu_data(cpu_input_t *cdata)
 {
     /*
     delete [] cdata->pos_rho;
@@ -119,7 +119,7 @@ void delete_gpu_tmp_data(gpu_tmp_t *gtmp_data)
     //check_gerr();
 }
 
-void cpu_to_gpu(gpu_ptc_t *gptc_data,gpu_tmp_t *gtmp_data,cpu_data_t *cdata,cpu_param_t *param)
+void cpu_to_gpu(gpu_ptc_t *gptc_data,gpu_tmp_t *gtmp_data,cpu_input_t *cdata,cpu_param_t *param)
 {
 
     //copy ptc data from cpu to gpu

@@ -138,14 +138,22 @@ typedef struct
     float *pos;
     float *vel;
     float *rhop;
-    /*
-    float *pos_rho;
-    float *vel_p;
-    */
     float *acc_drhodt;
     int *type;
     int *table;
-}cpu_data_t;
+}cpu_input_t;
+
+typedef struct
+{
+    float *pos;
+    float *vel;
+    float *rhop;
+    float *acc_drhodt;
+    int *type;
+    int *table;
+    int *hash;
+    float *wsum;    
+}cpu_output_t;
 
 typedef struct
 {
@@ -172,11 +180,13 @@ typedef struct
 typedef struct
 {
     int current_step;
-    cpu_data_t data;
+    cpu_output_t data;
     std::atomic<int> write_flag;
     std::atomic<int> end_flag;
     std::thread thread;
 }cpu_thread_t;
 
+extern __constant__ gpu_param_t par;
+extern __constant__ gpu_tmp_t tmp_data;
 
 #endif

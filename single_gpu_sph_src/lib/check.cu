@@ -4,20 +4,22 @@ void check_dt(cpu_param_t *param)
 {
     float dt_max =0.0f;
     dt_max = 0.25 * param->h / sqrt(-param->g * (param->zmax - param->zmin));
-    std::cout << "Zsph is checking dt ..." << std::endl;    
+    std::cout << "*******************************************************************************************" << std::endl;
+    std::cout << "* Zsph is checking dt ..." << std::endl;    
     if(param->dt <= dt_max)
     {
-        //std::cout << "Dt is less than the dt_max" << std::endl;
+        std::cout << "* Dt checking is done ..." << std::endl;
     }
     else
     {
-        std::cerr << "Dt is greater than the dt_max" << std::endl;
+        std::cerr << "* Dt is greater than the dt_max" << std::endl;
         exit(1);
     }
 }
 void check_gpu(cpu_param_t *param)
 {
-    std::cout << "Zsph is checking gpu ..." << std::endl;
+    std::cout << "*******************************************************************************************" << std::endl;
+    std::cout << "* Zsph is checking gpu ..." << std::endl;
     cudaDeviceProp prop;  
     int deviceCount;  
     
@@ -27,13 +29,13 @@ void check_gpu(cpu_param_t *param)
   
     // is the gpu num equal 0  
     if (deviceCount == 0) {  
-        std::cerr << "No CUDA-capable devices are available." << std::endl;  
+        std::cerr << "* No CUDA-capable devices are available." << std::endl;  
         exit(1);  
     }  
   
     // check the first gpu prop  
     if (cudaGetDeviceProperties(&prop, param->gpu_id) == cudaSuccess) {  
-        std::cout << "*******************************************************************************************" << std::endl;
+        //std::cout << "*******************************************************************************************" << std::endl;
         std::cout << "* Device Name: " << prop.name << std::endl;  
         std::cout << "* Total Global Memory: " << prop.totalGlobalMem / (1024 * 1024) << " MB" << std::endl;  
         std::cout << "* Shared Memory per Block: " << prop.sharedMemPerBlock / 1024 << " KB" << std::endl;  
@@ -47,10 +49,10 @@ void check_gpu(cpu_param_t *param)
         std::cout << "* asyncEngineCount: " << prop.asyncEngineCount << std::endl;  
         std::cout << "* persistingL2CacheMaxSize: " << prop.persistingL2CacheMaxSize << std::endl;  
         std::cout << "* concurrentKernels: " << prop.concurrentKernels << std::endl;  
-        std::cout << "*******************************************************************************************" << std::endl;
+        //std::cout << "*******************************************************************************************" << std::endl;
     
     } else {  
-        std::cerr << "Failed to get CUDA device properties." << std::endl;
+        std::cerr << "* Failed to get CUDA device properties." << std::endl;
         exit(1);   
     }  
   
@@ -58,8 +60,8 @@ void check_gpu(cpu_param_t *param)
 
 void check_param(cpu_param_t *cparam)
 {
-    std::cout << "Zsph is checking cpu_param_t..." <<std::endl;
     std::cout << "*******************************************************************************************" << std::endl;
+    std::cout << "* Zsph is checking cpu_param_t..." <<std::endl;
     std::cout << "* g:" << cparam->g << std::endl;
     std::cout << "* m:" << cparam->m << std::endl;
     std::cout << "* rho0:" << cparam->rho0 << std::endl;
@@ -81,14 +83,14 @@ void check_param(cpu_param_t *cparam)
     std::cout << "* grid_num:" << cparam->grid_num << " grid_hash_min:" << cparam->grid_hash_min << " grid_hash_max:" << cparam->grid_hash_max << std::endl;
     std::cout << "* ptc_num:" << cparam->ptc_num << std::endl;
     std::cout << "* gpu_id" << cparam->gpu_id << std::endl;
-    std::cout << "*******************************************************************************************" << std::endl;
+    //std::cout << "*******************************************************************************************" << std::endl;
 }
 
 void check_json(cpu_json_t *cjson)
 {
-    std::cout << "Zsph is checking gpu_param_t..." << std::endl;
-    std::cout << "NO IMPLEMENTION" << std::endl;
-    std::cout << "***********************************" << std::endl;
+    std::cout << "*******************************************************************************************" << std::endl;
+    std::cout << "* Zsph is checking gpu_param_t..." << std::endl;
+    std::cout << "* NO IMPLEMENTION" << std::endl;
 }
 
 void check_gerr(const char *a,const int b)

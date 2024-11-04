@@ -26,7 +26,7 @@ int trans(int x)
     return X;
 }
 
-void write_vtk(std::string filename, cpu_data_t *data, cpu_param_t *param)
+void write_vtk(std::string filename, cpu_output_t *data, cpu_param_t *param)
 {
 //BINARY FORMAT OUTPUT
 #ifdef ZSPH_BINARY
@@ -53,7 +53,7 @@ void write_vtk(std::string filename, cpu_data_t *data, cpu_param_t *param)
     // ptc data
     ofile << "POINT_DATA " << param->ptc_num << std::endl;
 
-#ifdef ZSPH_DEBUG
+#ifdef ZSPH_OUPUT_RHO
     ofile << "SCALARS rho float 1" << std::endl;
     ofile << "LOOKUP_TABLE default" << std::endl;
     for (int i = 0; i < param->ptc_num; i++)
@@ -63,6 +63,7 @@ void write_vtk(std::string filename, cpu_data_t *data, cpu_param_t *param)
     }
 #endif
 
+#ifdef ZSPH_OUTPUT_P
     ofile << "SCALARS p float 1" << std::endl;
     ofile << "LOOKUP_TABLE default" << std::endl;
     for (int i = 0; i < param->ptc_num; i++)
@@ -70,7 +71,9 @@ void write_vtk(std::string filename, cpu_data_t *data, cpu_param_t *param)
         float p = trans(data->rhop[i * 2 + 1]);
         ofile.write((char *)&p, sizeof(float));
     }
+#endif
 
+#ifdef ZSPH_OUTPUT_TYPE
     ofile << "SCALARS type int 1" << std::endl;
     ofile << "LOOKUP_TABLE default" << std::endl;
     for (int i = 0; i < param->ptc_num; i++)
@@ -78,7 +81,29 @@ void write_vtk(std::string filename, cpu_data_t *data, cpu_param_t *param)
         int type = trans(data->type[i]);
         ofile.write((char *)&type, sizeof(int));
     }
+#endif 
 
+#ifdef ZSPH_OUTPUT_HASH
+    ofile << "SCALARS hash int 1" << std::endl;
+    ofile << "LOOKUP_TABLE default" << std::endl;
+    for(int i=0;i < param->ptc_num; i++)
+    {
+        int tmphash = trans(data->hash[i]);
+        ofile.write((char *)&tmphash,sizeof(int));
+    }
+#endif
+
+#ifdef ZSPH_OUTPUT_WSUM
+    ofile << "SCALARS wsum float 1" << std::endl;
+    ofile << "LOOKUP_TABLE default" << std::endl;
+    for(int i=0;i < param->ptc_num; i++)
+    {
+        float tmpwsum = trans(data->wum[i]);
+        ofile.write((char *)&tmpwsum,sizeof(float));
+    }
+#endif
+
+#ifdef ZSPH_OUTPUT_VEL
     ofile << "VECTORS vel float" << std::endl;
     for (int i = 0; i < param->ptc_num; i++)
     {
@@ -88,8 +113,9 @@ void write_vtk(std::string filename, cpu_data_t *data, cpu_param_t *param)
         vel[2] = trans(data->vel[i *3 + 2]);
         ofile.write((char *)vel, 3 * sizeof(float));
     }
+#endif
 
-#ifdef ZSPH_DEBUG
+#ifdef ZSPH_OUTPUT_ACC
     ofile << "VECTORS acc float" << std::endl;
     for (int i = 0; i < param->ptc_num; i++)
     {
@@ -119,7 +145,7 @@ void write_vtk(std::string filename, cpu_data_t *data, cpu_param_t *param)
     }
     ofile << "POINT_DATA " << param->ptc_num << std::endl;
 
-#ifdef ZSPH_DEBUG
+#ifdef ZSPH_OUTPUT_RHO
     ofile << "SCALARS rho float 1" << std::endl;
     ofile << "LOOKUP_TABLE default" << std::endl;
     for (int i = 0; i < param->ptc_num; i++)
@@ -128,19 +154,41 @@ void write_vtk(std::string filename, cpu_data_t *data, cpu_param_t *param)
     }
 #endif
 
+#ifdef ZSPH_OUTPUT_P
     ofile << "SCALARS p float 1" << std::endl;
     ofile << "LOOKUP_TABLE default" << std::endl;
     for (int i = 0; i < param->ptc_num; i++)
     {
         ofile << data->rhop[i * 2 + 1] << std::endl;
     }
+#endif 
 
+#ifdef ZSPH_OUTPUT_HASH
+    ofile << "SCALARS hash int 1" << std::endl;
+    ofile << "LOOKUP_TABLE default" << std::endl;
+    for(int i=0;i < param->ptc_num; i++)
+    {
+        ofile << data->hash[i] << std::endl;
+    }
+#endif
+
+#ifdef ZSPH_OUTPUT_WSUM
+    ofile << "SCALARS wsum float 1" << std::endl;
+    ofile << "LOOKUP_TABLE default" << std::endl;
+    for(int i=0;i < param->ptc_num; i++)
+    {
+        ofile << data->wsum[i] << std::endl;
+    }
+#endif
+
+#ifdef ZSPH_OUTPUT_TYPE
     ofile << "SCALARS type int 1" << std::endl;
     ofile << "LOOKUP_TABLE default" << std::endl;
     for (int i = 0; i < param->ptc_num; i++)
     {
         ofile << data->type[i] << std::endl;
     }
+#endif
 
     ofile << "VECTORS vel float" << std::endl;
     for (int i = 0; i < param->ptc_num; i++)
@@ -148,7 +196,7 @@ void write_vtk(std::string filename, cpu_data_t *data, cpu_param_t *param)
         ofile << data->vel[i * 3 + 0] << " " << data->vel[i * 3 + 1] << " " << data->vel[i * 3 + 2] << std::endl;
     }
 
-#ifdef ZSPH_DEBUG
+#ifdef ZSPH_OUTPUT_ACC
     ofile << "VECTORS acc float" << std::endl;
     for (int i = 0; i < param->ptc_num; i++)
     {

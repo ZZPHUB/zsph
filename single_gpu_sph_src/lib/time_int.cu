@@ -1,91 +1,92 @@
 #include "lib.cuh"
 
-__global__ void cuda_prediction(gpu_ptc_t *ptc_data, gpu_tmp_t *tmp_data, gpu_param_t *par)
+__global__ void cuda_prediction(gpu_ptc_t *tptc_data)
 {
     const int index = (blockIdx.x * blockDim.x) + threadIdx.x;
-    float3 tmp_pos;
-    float3 tmp_vel;
-    float2 tmp_rhop;
-    float4 acc_drhodt;
-    if(index < par->ptc_num)
+    const gpu_ptc_t ptc_data = *tptc_data;
+    float3 tmp_pos_;
+    float3 tmp_vel_;
+    float2 tmp_rhop_;
+    float4 acc_drhodt_;
+    if(index < par.ptc_num)
     {
-        if(ptc_data->type[index] == 1)
+        if(ptc_data.type[index] == 1)
         {
-            //load the data of pos rho vel and p
-            tmp_pos = ptc_data->pos[index];
-            tmp_vel = ptc_data->vel[index];
-            tmp_rhop = ptc_data->rhop[index];
-            acc_drhodt = tmp_data->acc_drhodt[index];
+            //load the pos vel and rho and p
+            tmp_pos_ = ptc_data.pos[index];
+            tmp_vel_ = ptc_data.vel[index];
+            tmp_rhop_ = ptc_data.rhop[index];
 
-            //save the tmp data of pos rho vel and p
-            ptc_data->tmp_pos[index] = tmp_pos;
-            ptc_data->tmp_vel[index] = tmp_vel;
-            ptc_data->tmp_rhop[index] = tmp_rhop;
-            
-            //time intergration
-            tmp_pos.x += tmp_vel.x * par->half_dt;//x
-            tmp_pos.y += tmp_vel.y * par->half_dt;//y
-            tmp_pos.z += tmp_vel.z * par->half_dt;//z
+            //load the acc and drhodt
+            acc_drhodt_ = tmp_data.acc_drhodt[index];
 
-            tmp_vel.x += acc_drhodt.x * par->half_dt;//vx
-            tmp_vel.y += acc_drhodt.y * par->half_dt;//vy
-            tmp_vel.z += acc_drhodt.z * par->half_dt;//vz
+            //store the temp pos vel and rho and p
+            ptc_data.tmp_pos[index] = tmp_pos_;
+            ptc_data.tmp_vel[index] = tmp_vel_;
+            ptc_data.tmp_rhop[index] = tmp_rhop_;
 
-            tmp_rhop.x += acc_drhodt.w * par->half_dt;//rho
-            
-            if(tmp_rhop.x < par->rho0)
-            {
-                tmp_rhop.x = par->rho0;
-            }
-            tmp_rhop.y = par->cs2 * (tmp_rhop.x - par->rho0);
+            //time integration 
+            tmp_pos_.x += tmp_vel_.x * par.half_dt;//x
+            tmp_pos_.y += tmp_vel_.y * par.half_dt;//y
+            tmp_pos_.z += tmp_vel_.z * par.half_dt;//z
 
-            ptc_data->pos[index] = tmp_pos;
-            ptc_data->vel[index] = tmp_vel;
-            ptc_data->rhop[index] = tmp_rhop;
+            tmp_vel_.x += acc_drhodt_.x * par.half_dt;//vx
+            tmp_vel_.y += acc_drhodt_.y * par.half_dt;//vy
+            tmp_vel_.z += acc_drhodt_.z * par.half_dt;//vz
+
+            tmp_rhop_.x += acc_drhodt_.w * par.half_dt;//rho
+
+            if(tmp_rhop_.x < par.rho0) tmp_rhop_.x = par.rho0;
+            tmp_rhop_.y = par.cs2*(tmp_rhop_.x - par.rho0);
+
+            //store pos vel and rho and p
+            ptc_data.pos[index] = tmp_pos_;
+            ptc_data.vel[index] = tmp_vel_;
+            ptc_data.rhop[index] = tmp_rhop_;
         }
     }
 }
 
-__global__ void cuda_correction(gpu_ptc_t *ptc_data, gpu_tmp_t *tmp_data, gpu_param_t *par)
+__global__ void cuda_correction(gpu_ptc_t *tptc_data)
 {
     const int index = (blockIdx.x * blockDim.x) + threadIdx.x;
-    float3 tmp_pos;
-    float3 tmp_vel;
-    float3 ptc_vel;
-    float2 tmp_rhop;
-    float4 acc_drhodt;
-    if(index < par->ptc_num)
+    const gpu_ptc_t ptc_data = *tptc_data;
+    float3 tmp_pos_;
+    float3 tmp_vel_;
+    float3 ptc_vel_;
+    float2 tmp_rhop_;
+    float4 acc_drhodt_;
+    if(index < par.ptc_num)
     {
-        if(ptc_data->type[index] == 1)
+        if(ptc_data.type[index] == 1)
         {
-            //load the data of pos rho vel and p from gpu_ptc_t's tmp_pos_rho and tmp_vel_p
-            tmp_pos = ptc_data->tmp_pos[index];
-            tmp_vel = ptc_data->tmp_vel[index];
-            ptc_vel = ptc_data->vel[index];
-            tmp_rhop = ptc_data->tmp_rhop[index];
-            acc_drhodt = tmp_data->acc_drhodt[index];
-            
-            //time intergration
-            tmp_pos.x += ptc_vel.x * par->half_dt *2.0f;//x
-            tmp_pos.y += ptc_vel.y * par->half_dt *2.0f;//y
-            tmp_pos.z += ptc_vel.z * par->half_dt *2.0f;//z
+            //load the tmp pos vel rho and p
+            tmp_pos_ = ptc_data.tmp_pos[index];
+            tmp_vel_ = ptc_data.tmp_vel[index];
+            tmp_rhop_ = ptc_data.tmp_rhop[index];
 
-            tmp_vel.x += acc_drhodt.x * par->half_dt *2.0f; //vx
-            tmp_vel.y += acc_drhodt.y * par->half_dt *2.0f; //vy
-            tmp_vel.z += acc_drhodt.z * par->half_dt *2.0f; //vz
+            //load the vel
+            ptc_vel_ = ptc_data.vel[index];
 
-            tmp_rhop.x += acc_drhodt.w * par->half_dt *2.0f; //rho
+            //load the acc and drhodt
+            acc_drhodt_ = tmp_data.acc_drhodt[index];
 
-            if(tmp_rhop.x < par->rho0)
-            {
-                tmp_rhop.x = par->rho0;
-            }
-            tmp_rhop.y = par->cs2 * (tmp_rhop.x - par->rho0);//p
+            //time integration
+            tmp_pos_.x += ptc_vel_.x * par.half_dt * 2.0f;
+            tmp_pos_.y += ptc_vel_.y * par.half_dt * 2.0f;
+            tmp_pos_.z += ptc_vel_.z * par.half_dt * 2.0f;
 
-            ptc_data->pos[index] = tmp_pos;
-            ptc_data->vel[index] = tmp_vel;
-            ptc_data->rhop[index]= tmp_rhop;
-            
+            tmp_vel_.x += acc_drhodt_.x * par.half_dt * 2.0f;
+            tmp_vel_.y += acc_drhodt_.y * par.half_dt * 2.0f;
+            tmp_vel_.z += acc_drhodt_.z * par.half_dt * 2.0f;
+
+            tmp_rhop_.x += acc_drhodt_.w * par.half_dt * 2.0f;
+            if(tmp_rhop_.x < par.rho0) tmp_rhop_.x = par.rho0;
+            tmp_rhop_.y = par.cs2*(tmp_rhop_.x - par.rho0);
+
+            ptc_data.pos[index] = tmp_pos_;
+            ptc_data.vel[index] = tmp_vel_;
+            ptc_data.rhop[index] = tmp_rhop_;
         }
     }
 }
