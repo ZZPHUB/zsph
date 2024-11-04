@@ -83,7 +83,14 @@ void alloc_gpu_tmp_data(gpu_tmp_t *gtmp_data,cpu_param_t *param)
 {
     //tmp data
     cudaMalloc(&(gtmp_data->acc_drhodt),param->ptc_num*sizeof(float4));
+    #ifdef ZSPH_DELTA
+    cudaMalloc(&(gtmp_data->dofv_grandrho),param->ptc_num*sizeof(float4));
+    cudaMemset(gtmp_data->dofv_grandrho,0,param->ptc_num*sizeof(float4));
+    #endif
+    #ifdef ZSPH_SIMPLE
     cudaMalloc(&(gtmp_data->dofv),param->ptc_num*sizeof(float));
+    cudaMemset(gtmp_data->dofv,0,param->ptc_num*sizeof(float));
+    #endif
 
     //hash and index
     cudaMalloc(&(gtmp_data->hash),param->ptc_num*sizeof(int));
@@ -95,7 +102,7 @@ void alloc_gpu_tmp_data(gpu_tmp_t *gtmp_data,cpu_param_t *param)
 
     //mem set to zero for safety
     cudaMemset(gtmp_data->acc_drhodt,0,param->ptc_num*sizeof(float4));
-    cudaMemset(gtmp_data->dofv,0,param->ptc_num*sizeof(float));
+
     //hash and index
     cudaMemset(gtmp_data->hash,0,param->ptc_num*sizeof(int));
     cudaMemset(gtmp_data->index,0,param->ptc_num*sizeof(int));
@@ -110,7 +117,14 @@ void alloc_gpu_tmp_data(gpu_tmp_t *gtmp_data,cpu_param_t *param)
 void delete_gpu_tmp_data(gpu_tmp_t *gtmp_data)
 {
     cudaFree(gtmp_data->acc_drhodt);
+
+    #ifdef ZSPH_DLETA
+    cudaFree(gtmp_data->dofv_grandrho);
+    #endif
+
+    #ifdef ZSPH_SIMPLE
     cudaFree(gtmp_data->dofv);
+    #endif
     cudaFree(gtmp_data->hash);
     cudaFree(gtmp_data->index);
     cudaFree(gtmp_data->grid_end);

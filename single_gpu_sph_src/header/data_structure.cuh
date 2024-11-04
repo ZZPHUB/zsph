@@ -170,7 +170,11 @@ typedef struct
 typedef struct 
 {
     float4 *acc_drhodt;
+//#ifdef ZSPH_DELTA
+    float4 *dofv_grandrho;
+//#elif ZSPH_SIMPLE
     float *dofv;
+//#endif
     int *index;
     int *hash;
     int *grid_start;

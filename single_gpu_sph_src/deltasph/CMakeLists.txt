@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.8)
-project(simplesph)
+project(deltasph)
 
 include_directories("../header/" "../../thirdparty/json/include")
 
@@ -20,24 +20,24 @@ find_package(VTK COMPONENTS
 
 #set(CUDA_NVCC_FLAGS -g;-G)
 set(CUDA_NVCC_FLAGS -lineinfo;--ptxas-options=-v;-arch=compute_75;-code=sm_75;-maxrregcount 64)
-file(GLOB_RECURSE files "./*.cu" "../equation/simple_ns.cu" "../io/*.cu" "../lib/*.cu")
+file(GLOB_RECURSE files "./*.cu" "../equation/delta_ns.cu" "../io/*.cu" "../lib/*.cu")
 
 add_definitions(-DZSPH_BINARY)
 add_definitions(-DZSPH_OUTPUT_TYPE)
 add_definitions(-DZSPH_OUTPUT_P)
 add_definitions(-DZSPH_OUTPUT_VEL)
 add_definitions(-DZSPH_OUTPUT_ACC)
+add_definitions(-DZSPH_DELTA)
 #add_definitions(-DZSPH_OUTPUT_HASH)
-add_definitions(-DZSPH_SIMPLE)
 
 
 message(STATUS "cuda version: "${CUDA_VERSION_STRING})
 
 set(CUDA_SEPARABLE_COMPILATION ON)
 
-cuda_add_executable(simplesph ${files})
-target_link_libraries(simplesph ${CUDA_LIBRARIES} ${VTK_LIBRARIES} -lcudadevrt)
+cuda_add_executable(deltasph ${files})
+target_link_libraries(deltasph ${CUDA_LIBRARIES} ${VTK_LIBRARIES} -lcudadevrt)
 vtk_module_autoinit(
-  TARGETS simplesph
+  TARGETS deltasph
   MODULES ${VTK_LIBRARIES}
 )
