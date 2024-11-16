@@ -41,9 +41,7 @@ typedef struct
     //thread num
     int thread_num;
 
-    //gpu id
-    //int gpu_id;
-    //gpu num
+    //total gpu num
     int gpu_num;
 
     //infomation about zsph
@@ -80,32 +78,17 @@ typedef struct
     //grid part
     int grid_factor; //to search the neighbor gird
     float grid_size; //single grid size
-    float grid_xmin,grid_ymin,grid_zmin;//min position of grid in xyz direction
-    float grid_xmax,grid_ymax,grid_zmax;//max position of grid in xyz direction
-    int grid_xdim,grid_ydim,grid_zdim;//num of grid in xyz direction
-    int grid_num;//num of grid.grid_num = grid_xdim*grid_ydim*gird_zdim
-    int grid_hash_min;//grid_hash_min = 0
-    int grid_hash_max;//grid_hash_max = grid_num-1
 
     //ptc part
     int ptc_num;//num of ptc
-    int water_ptc_num;//num of water ptc
-    int air_ptc_num;//num of air ptc
-    int wall_ptc_num;//num of wall ptc
-    int rigid_ptc_num;//num of rigid ptc
 
     //thread num
     int thread_num;
 
-    //gpu id
-    //int gpu_id;
-    //gpu num;
+    //gpu param setting
+    int gmax_size;
+    //total gpu_num
     int gpu_num;
-    int gpu_data_size;
-    int gpu_buff_size;
-    
-    //sub domain
-    int sub_domain_num;
 
     //infomation about zsph
     std::string input_path;
@@ -128,38 +111,38 @@ typedef struct
     float alpha; //artificial term factor
     float delta_h_cs;//delta_h_cs = delta*h*cs
     float h_cs_rho_m;//h_cs_rho_m = h*cs*rho*m
+    float dx2;//dx2 = dx*dx + dy*dy + dz*dz;
     
     //grid part
     float grid_size;
     int grid_factor;
     float grid_xmin,grid_ymin,grid_zmin;
+    float grid_xmax,grid_ymax,grid_zmax;
     //int grid_num; //do not use
     int grid_xdim,grid_ydim,grid_zdim;
     int grid_hash_min;
     int grid_hash_max;
 
-    //ptc part
-    int ptc_num;
-}gpu_param_t;
-
-
-typedef struct 
-{
-    int hash_min_l; //buff hash min in left sub domain
-    int hash_mid_l; //buff hash mid in left sub domain
-    int hash_max_l; //buff hash max in left sub domain
-    int hash_min_r; //buff hash min in right sub domain
-    int hash_mid_r; //buff hash mid in right sub domain
-    int hash_max_r; //buff hash max in right sub domain
-    
-    int ptc_num;
+    //gpu id
     int gpu_id;
-    int left;
-    int right;
+    int gpu_num;
+    int gmax_size;
+    /*
+    int hash_start_l;
+    int hash_end_l;
+    int hash_start_r;
+    int hash_end_r;
+    */
+    float start_l;
+    float end_l;
+    float start_r;
+    float end_r;
+    float rec_l;
+    float rec_r;
 
-    int out_buff; //if 1 then need to split the domain again
-}gpu_buff_t;
-
+    float left_val;
+    float right_val;
+}gpu_param_t;
 
 typedef struct
 {
@@ -169,6 +152,8 @@ typedef struct
     float *acc_drhodt;
     int *type;
     int *table;
+    int *is_ptc;
+    int *gpu_id;
 }cpu_input_t;
 
 typedef struct
@@ -180,8 +165,56 @@ typedef struct
     int *type;
     int *table;
     int *hash;
-    float *wsum;    
+    float *wsum; 
+    int *is_ptc;
+    int *gpu_id;
+    int ptc_num;   
 }cpu_output_t;
+
+typedef struct 
+{   
+    //the data array's ptr,and the data where transfered to the nearest gpus
+    float3 *pos_send;
+    float3 *vel_send;
+    float2 *rhop_send;
+    float3 *tmp_pos_send;
+    float3 *tmp_vel_send;
+    float2 *tmp_rhop_send;
+    int *type_send;
+    int *gpu_id_send;
+    int *table_send;
+    int *is_ptc_send;
+
+    //the data array's ptc,and the data ptr is the ptr that where receive data frome left and right nearest gpus
+    float3 *pos_rec_l;
+    float3 *vel_rec_l;
+    float2 *rhop_rec_l;
+    float3 *tmp_pos_rec_l;
+    float3 *tmp_vel_rec_l;
+    float2 *tmp_rhop_rec_l;
+    int *type_rec_l;
+    int *gpu_id_rec_l;
+    int *table_rec_l;
+    int *is_ptc_rec_l;
+
+    float3 *pos_rec_r;
+    float3 *vel_rec_r;
+    float2 *rhop_rec_r;
+    float3 *tmp_pos_rec_r;
+    float3 *tmp_vel_rec_r;
+    float2 *tmp_rhop_rec_r;
+    int *type_rec_r;
+    int *gpu_id_rec_r;
+    int *table_rec_r;
+    int *is_ptc_rec_r;
+
+    int total_ptc_num;
+    int send_ptc_num;
+    int outer_ptc_num;
+//    int buffr_ptc_num;
+//    int inner_ptc_num;
+}gpu_socket_t;
+
 
 typedef struct
 {
@@ -193,18 +226,23 @@ typedef struct
     float2 *tmp_rhop; //to save rho and p for time intergration
     int *type;
     int *table;
+    int *is_ptc;
+    int *gpu_id;
 }gpu_ptc_t;
 
 typedef struct 
 {
     float4 *acc_drhodt;
 //#ifdef ZSPH_DELTA
-    float4 *dofv_grandrho;
+    //float4 *dofv_grandrho;
 //#elif ZSPH_SIMPLE
     float *dofv;
 //#endif
     int *index;
     int *hash;
+    //int *is_ptc;
+    //int *gpu_id;
+    float *wsum;
     int *grid_start;
     int *grid_end;
 }gpu_tmp_t;
@@ -212,13 +250,13 @@ typedef struct
 typedef struct
 {
     int current_step;
-    cpu_output_t data;
+    cpu_output_t *data;
     std::atomic<int> write_flag;
     std::atomic<int> end_flag;
     std::thread thread;
 }cpu_thread_t;
 
 extern __constant__ gpu_param_t par;
-extern __constant__ gpu_tmp_t tmp_data;
+extern __constant__ gpu_tmp_t gtmp_data;
 
 #endif

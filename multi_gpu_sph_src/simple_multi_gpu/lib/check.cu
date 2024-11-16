@@ -34,7 +34,7 @@ void check_gpu(cpu_param_t *param)
     }  
   
     // check the first gpu prop  
-    if (cudaGetDeviceProperties(&prop, param->gpu_id) == cudaSuccess) {  
+    if (cudaGetDeviceProperties(&prop, 0) == cudaSuccess) {  
         //std::cout << "*******************************************************************************************" << std::endl;
         std::cout << "* Device Name: " << prop.name << std::endl;  
         std::cout << "* Total Global Memory: " << prop.totalGlobalMem / (1024 * 1024) << " MB" << std::endl;  
@@ -80,9 +80,10 @@ void check_param(cpu_param_t *cparam)
     std::cout << "* output_step:" << cparam->output_step << std::endl;
     std::cout << "* xmin:" << cparam->xmin << " xmax:" << cparam->xmax << " ymin:" << cparam->ymin << " ymax:" << cparam->ymax <<" zmin:" << cparam->zmin << " zmax:" << cparam->zmax << std::endl;
     std::cout << "* grid_size:" << cparam->grid_size << std::endl;
-    std::cout << "* grid_num:" << cparam->grid_num << " grid_hash_min:" << cparam->grid_hash_min << " grid_hash_max:" << cparam->grid_hash_max << std::endl;
+    //std::cout << "* grid_num:" << cparam->grid_num << " grid_hash_min:" << cparam->grid_hash_min << " grid_hash_max:" << cparam->grid_hash_max << std::endl;
     std::cout << "* ptc_num:" << cparam->ptc_num << std::endl;
-    std::cout << "* gpu_id" << cparam->gpu_id << std::endl;
+    std::cout << "* gpu_num:" << cparam->gpu_num << std::endl;
+    std::cout << "* single gpu max ptc num:" << cparam->gmax_size << std::endl;
     //std::cout << "*******************************************************************************************" << std::endl;
 }
 
@@ -103,3 +104,13 @@ void check_gerr(const char *a,const int b)
         exit(1);
     }
 }
+
+void check_mulgerr(const char*a,const int b,cpu_param_t *cparam)
+{
+    for(int i=0;i<cparam->gpu_num;i++)
+    {
+        cudaSetDevice(i);
+        check_gerr(a,b);
+    }
+}
+

@@ -42,7 +42,6 @@ void read_json(std::string file_name, cpu_json_t *json_data)
 
     json_data->thread_num = jdata["thread_num"];
 
-    //json_data->gpu_id = jdata["gpu_id"];
     json_data->gpu_num = jdata["gpu_num"];
 
     json_data->input_path = jdata["input_path"];

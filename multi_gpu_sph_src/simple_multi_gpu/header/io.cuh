@@ -7,7 +7,7 @@
 #include "data_structure.cuh"
 
 extern void read_vtk(cpu_input_t *data, cpu_param_t *param);
-extern void write_vtk(std::string file_name, cpu_output_t *data, cpu_param_t *param);
+extern void write_vtk(std::string file_name, cpu_output_t *data);
 
 extern void mul_thread_creat(cpu_thread_t *thread_pool,cpu_param_t *param);
 extern void mul_thread_output(cpu_thread_t *thread,cpu_param_t *param);
