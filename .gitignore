@@ -37,6 +37,8 @@
 # build dir
 */*/build
 */*/build/*
+*/*/*/build
+*/*/*/build/*
 
 # vscode config
 .vscode
